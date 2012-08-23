@@ -30,7 +30,7 @@ from yolk.utils import get_yolk_dir
 
 XML_RPC_SERVER = 'http://pypi.python.org/pypi'
 
-class addinfourl(urllib2.addinfourl):
+class addinfourl(urllib.request.addinfourl):
     """
     Replacement addinfourl class compatible with python-2.7's xmlrpclib
 
@@ -50,7 +50,7 @@ class addinfourl(urllib2.addinfourl):
             raise httplib.ResponseNotReady()
         return list(self.headers.items())
 
-urllib2.addinfourl = addinfourl
+urllib.addinfourl = addinfourl
 
 
 class ProxyTransport(xmlrpc.client.Transport):
