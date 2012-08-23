@@ -197,13 +197,13 @@ class CheeseShop(object):
         """Return list of pickled package names from PYPI"""
         if self.debug:
             self.logger.debug("DEBUG: reading pickled cache file")
-        return pickle.load(open(self.pkg_cache_file, "r"))
+        return pickle.load(open(self.pkg_cache_file, "rb"))
 
     def fetch_pkg_list(self):
         """Fetch and cache master list of package names from PYPI"""
         self.logger.debug("DEBUG: Fetching package name list from PyPI")
         package_list = self.list_packages()
-        pickle.dump(package_list, open(self.pkg_cache_file, "w"))
+        pickle.dump(package_list, open(self.pkg_cache_file, "wb"))
         self.pkg_list = package_list
 
     def search(self, spec, operator):
