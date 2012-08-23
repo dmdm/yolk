@@ -19,7 +19,7 @@ __docformat__ = 'restructuredtext'
 
 import os
 from distutils.sysconfig import get_python_lib
-from commands import getstatusoutput
+from subprocess import getstatusoutput
 
 
 class PackageManagerPlugin:

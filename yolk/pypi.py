@@ -17,13 +17,13 @@ License  : BSD (See COPYING)
 __docformat__ = 'restructuredtext'
 
 import re
-import xmlrpclib
-import cPickle
+import xmlrpc.client
+import pickle
 import os
 import time
 import logging
-import urllib2
-import urllib
+import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.parse, urllib.error
 
 from yolk.utils import get_yolk_dir
 
@@ -48,12 +48,12 @@ class addinfourl(urllib2.addinfourl):
     def getheaders(self):
         if self.headers is None:
             raise httplib.ResponseNotReady()
-        return self.headers.items()
+        return list(self.headers.items())
 
 urllib2.addinfourl = addinfourl
 
 
-class ProxyTransport(xmlrpclib.Transport):
+class ProxyTransport(xmlrpc.client.Transport):
     """
     Provides an XMl-RPC transport routing via a http proxy.
 
@@ -75,13 +75,13 @@ class ProxyTransport(xmlrpclib.Transport):
         #We get a traceback if we don't have this attribute:
         self.verbose = verbose
         url = 'http://' + host + handler
-        request = urllib2.Request(url)
+        request = urllib.request.Request(url)
         request.add_data(request_body)
         # Note: 'Host' and 'Content-Length' are added automatically
         request.add_header('User-Agent', self.user_agent)
         request.add_header('Content-Type', 'text/xml')
-        proxy_handler = urllib2.ProxyHandler()
-        opener = urllib2.build_opener(proxy_handler)
+        proxy_handler = urllib.request.ProxyHandler()
+        opener = urllib.request.build_opener(proxy_handler)
         fhandle = opener.open(request)
         return(self.parse_response(fhandle))
 
@@ -158,12 +158,12 @@ class CheeseShop(object):
         Returns PyPI's XML-RPC server instance
         """
         check_proxy_setting()
-        if os.environ.has_key('XMLRPC_DEBUG'):
+        if 'XMLRPC_DEBUG' in os.environ:
             debug = 1
         else:
             debug = 0
         try:
-            return xmlrpclib.Server(XML_RPC_SERVER, transport=ProxyTransport(), verbose=debug)
+            return xmlrpc.client.Server(XML_RPC_SERVER, transport=ProxyTransport(), verbose=debug)
         except IOError:
             self.logger("ERROR: Can't connect to XML-RPC server: %s" \
                     % XML_RPC_SERVER)
@@ -197,13 +197,13 @@ class CheeseShop(object):
         """Return list of pickled package names from PYPI"""
         if self.debug:
             self.logger.debug("DEBUG: reading pickled cache file")
-        return cPickle.load(open(self.pkg_cache_file, "r"))
+        return pickle.load(open(self.pkg_cache_file, "r"))
 
     def fetch_pkg_list(self):
         """Fetch and cache master list of package names from PYPI"""
         self.logger.debug("DEBUG: Fetching package name list from PyPI")
         package_list = self.list_packages()
-        cPickle.dump(package_list, open(self.pkg_cache_file, "w"))
+        pickle.dump(package_list, open(self.pkg_cache_file, "w"))
         self.pkg_list = package_list
 
     def search(self, spec, operator):
@@ -231,7 +231,7 @@ class CheeseShop(object):
         """Query PYPI via XMLRPC interface for a pkg's metadata"""
         try:
             return self.xmlrpc.release_data(package_name, version)
-        except xmlrpclib.Fault:
+        except xmlrpc.client.Fault:
             #XXX Raises xmlrpclib.Fault if you give non-existant version
             #Could this be server bug?
             return
@@ -269,7 +269,7 @@ class CheeseShop(object):
 
             #Try the package's metadata directly in case there's nothing
             #returned by XML-RPC's release_urls()
-            if metadata and metadata.has_key('download_url') and \
+            if metadata and 'download_url' in metadata and \
                         metadata['download_url'] != "UNKNOWN" and \
                         metadata['download_url'] != None:
                 if metadata['download_url'] not in all_urls:
